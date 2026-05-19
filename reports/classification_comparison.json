@@ -1,0 +1,197 @@
+{
+  "task": "four_label_github_issue_classification",
+  "labels": [
+    "bug",
+    "feature",
+    "docs",
+    "question"
+  ],
+  "splits": {
+    "train": "data/processed/train.jsonl",
+    "validation": "data/processed/val.jsonl",
+    "test": "data/processed/test.jsonl"
+  },
+  "models": {
+    "classical": {
+      "status": "completed",
+      "model": "tfidf_logistic_regression",
+      "report_path": "/Users/rayanhalabi/Desktop/maintainers-copilot/reports/classical_metrics.json",
+      "artifact_dir": null,
+      "validation": {
+        "accuracy": 0.7100591715976331,
+        "macro_f1": 0.7080891620381671,
+        "per_class_f1": {
+          "bug": 0.6966292134831461,
+          "feature": 0.6363636363636364,
+          "docs": 0.7421383647798742,
+          "question": 0.7572254335260116
+        },
+        "confusion_matrix": [
+          [
+            93,
+            19,
+            7,
+            27
+          ],
+          [
+            22,
+            77,
+            12,
+            26
+          ],
+          [
+            1,
+            2,
+            59,
+            14
+          ],
+          [
+            5,
+            7,
+            5,
+            131
+          ]
+        ]
+      },
+      "test": {
+        "accuracy": 0.6365422396856582,
+        "macro_f1": 0.6172584412615927,
+        "per_class_f1": {
+          "bug": 0.6594982078853047,
+          "feature": 0.527363184079602,
+          "docs": 0.5714285714285714,
+          "question": 0.7107438016528925
+        },
+        "confusion_matrix": [
+          [
+            92,
+            6,
+            9,
+            40
+          ],
+          [
+            26,
+            53,
+            36,
+            23
+          ],
+          [
+            2,
+            1,
+            50,
+            23
+          ],
+          [
+            12,
+            3,
+            4,
+            129
+          ]
+        ],
+        "avg_prediction_latency_ms": 0.1196917475792186
+      },
+      "train_time_seconds": 0.7530288696289062,
+      "cost": null,
+      "confusion_matrix_path": null,
+      "notes": []
+    },
+    "transformer": {
+      "status": "completed",
+      "model": "hf-internal-testing/tiny-random-distilbert",
+      "report_path": "/Users/rayanhalabi/Desktop/maintainers-copilot/reports/transformer_metrics.json",
+      "artifact_dir": "/Users/rayanhalabi/Desktop/maintainers-copilot/artifacts/transformer_classifier",
+      "validation": {
+        "accuracy": 0.328125,
+        "macro_f1": 0.12352941176470589,
+        "per_class_f1": {
+          "bug": 0.0,
+          "feature": 0.0,
+          "docs": 0.0,
+          "question": 0.49411764705882355
+        },
+        "confusion_matrix": [
+          [
+            0,
+            0,
+            0,
+            22
+          ],
+          [
+            0,
+            0,
+            0,
+            13
+          ],
+          [
+            0,
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            0,
+            0,
+            21
+          ]
+        ]
+      },
+      "test": {
+        "accuracy": 0.265625,
+        "macro_f1": 0.10493827160493827,
+        "per_class_f1": {
+          "bug": 0.0,
+          "feature": 0.0,
+          "docs": 0.0,
+          "question": 0.41975308641975306
+        },
+        "confusion_matrix": [
+          [
+            0,
+            0,
+            0,
+            22
+          ],
+          [
+            0,
+            0,
+            0,
+            17
+          ],
+          [
+            0,
+            0,
+            0,
+            8
+          ],
+          [
+            0,
+            0,
+            0,
+            17
+          ]
+        ],
+        "avg_prediction_latency_ms": 3.7522221875292416
+      },
+      "train_time_seconds": 1.6527685210021446,
+      "cost": null,
+      "confusion_matrix_path": "/Users/rayanhalabi/Desktop/maintainers-copilot/reports/transformer_confusion_matrix.json",
+      "notes": []
+    },
+    "llm_baseline": {
+      "status": "skipped",
+      "model": "gpt-4o-mini",
+      "report_path": "/Users/rayanhalabi/Desktop/maintainers-copilot/reports/llm_baseline_metrics.json",
+      "reason": "OPENAI_API_KEY is not set, so the LLM baseline was skipped.",
+      "notes": [
+        "LLM baseline was not run.",
+        "Set OPENAI_API_KEY to enable OpenAI-compatible chat completion evaluation.",
+        "Optional: set LLM_MODEL, LLM_API_BASE, LLM_BASELINE_LIMIT, LLM_INPUT_COST_PER_1M, and LLM_OUTPUT_COST_PER_1M."
+      ]
+    }
+  },
+  "notes": [
+    "All completed models use the same processed train/validation/test files.",
+    "Cost is only present for the LLM baseline when token pricing environment variables are supplied."
+  ]
+}

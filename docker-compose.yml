@@ -1,0 +1,9 @@
+services:
+  model_server:
+    build:
+      context: ./backend/model_server
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend/model_server:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload

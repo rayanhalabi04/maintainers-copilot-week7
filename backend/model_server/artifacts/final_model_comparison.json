@@ -1,0 +1,20 @@
+[
+  {
+    "model": "TF-IDF + Logistic Regression",
+    "test_accuracy": 0.8105,
+    "test_macro_f1": 0.6853,
+    "deployment_choice": true
+  },
+  {
+    "model": "Fine-tuned DistilBERT / RoBERTa",
+    "test_accuracy": 0.7769,
+    "test_macro_f1": 0.6486,
+    "deployment_choice": false
+  },
+  {
+    "model": "Local FLAN-T5 LLM baseline",
+    "test_accuracy": 0.32,
+    "test_macro_f1": 0.25,
+    "deployment_choice": false
+  }
+]

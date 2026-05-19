@@ -1,0 +1,25 @@
+{
+  "project": "Maintainer's Copilot - Week 7",
+  "dataset": "nodejs/node closed GitHub issues",
+  "task": "Issue classification",
+  "labels": [
+    "bug",
+    "feature",
+    "docs",
+    "question"
+  ],
+  "deployment_model": "tfidf_logreg_baseline",
+  "model_type": "TF-IDF + Logistic Regression",
+  "split_strategy": "time-based split: train oldest, validation middle, test newest",
+  "label_mapping": {
+    "confirmed-bug": "bug",
+    "regression": "bug",
+    "feature request": "feature",
+    "doc": "docs",
+    "question": "question",
+    "help wanted": "question"
+  },
+  "test_accuracy": 0.8105,
+  "test_macro_f1": 0.6853,
+  "deployment_reason": "Best test accuracy and macro-F1, faster and cheaper than transformer and LLM baseline."
+}

@@ -1,0 +1,20 @@
+{
+  "repo": "nodejs/node",
+  "model": "tfidf_logistic_regression",
+  "label_names": [
+    "bug",
+    "feature",
+    "docs",
+    "question"
+  ],
+  "raw_fetched_issues": 18591,
+  "usable_mapped_issues": 5942,
+  "train_size": 4159,
+  "val_size": 891,
+  "test_size": 892,
+  "val_accuracy": 0.7991021324354658,
+  "val_macro_f1": 0.6934924778952115,
+  "test_accuracy": 0.8105381165919282,
+  "test_macro_f1": 0.6852706585228417,
+  "predict_ms_per_row": 0.5081432282657367
+}

@@ -1,0 +1,24 @@
+{
+  "active_repo": "nodejs/node",
+  "source_files_copied_from": [
+    "backend/model_server/artifacts/nodejs_issues_mapped.csv",
+    "backend/model_server/artifacts/train.csv",
+    "backend/model_server/artifacts/val.csv",
+    "backend/model_server/artifacts/test.csv"
+  ],
+  "active_files": [
+    "data/classification/nodejs_issues_mapped.csv",
+    "data/classification/train.csv",
+    "data/classification/val.csv",
+    "data/classification/test.csv"
+  ],
+  "archived_old_dataset": true,
+  "archived_paths": [
+    "data/archive/pandas/raw/issues.jsonl",
+    "data/archive/pandas/processed/train.jsonl",
+    "data/archive/pandas/processed/val.jsonl",
+    "data/archive/pandas/processed/test.jsonl"
+  ],
+  "created_at": "2026-05-20T18:35:43Z",
+  "note": "Old pandas-dev/pandas JSONL data was archived under data/archive/pandas. Node.js nodejs/node CSV files copied from backend/model_server/artifacts are the active classification dataset."
+}

@@ -1,0 +1,36 @@
+{
+  "labels": [
+    "bug",
+    "feature",
+    "docs",
+    "question"
+  ],
+  "rows": "expected",
+  "columns": "predicted",
+  "matrix": [
+    [
+      3,
+      1,
+      0,
+      2
+    ],
+    [
+      0,
+      6,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      6,
+      0
+    ],
+    [
+      2,
+      0,
+      1,
+      4
+    ]
+  ]
+}

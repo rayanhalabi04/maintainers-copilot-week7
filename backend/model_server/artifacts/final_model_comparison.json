@@ -3,18 +3,30 @@
     "model": "TF-IDF + Logistic Regression",
     "test_accuracy": 0.8105,
     "test_macro_f1": 0.6853,
-    "deployment_choice": true
+    "deployment_choice": true,
+    "api_cost_per_1000_predictions": 0,
+    "compute_cost_category": "very_low_cpu",
+    "latency_category": "fastest",
+    "deployment_cost_reason": "no API cost, small CPU model, fastest inference"
   },
   {
     "model": "Fine-tuned DistilBERT / RoBERTa",
     "test_accuracy": 0.7769,
     "test_macro_f1": 0.6486,
-    "deployment_choice": false
+    "deployment_choice": false,
+    "api_cost_per_1000_predictions": 0,
+    "compute_cost_category": "medium_gpu_or_cpu",
+    "latency_category": "medium",
+    "deployment_cost_reason": "no API cost if hosted locally, but heavier compute and slower inference than Logistic Regression"
   },
   {
     "model": "Local FLAN-T5 LLM baseline",
     "test_accuracy": 0.32,
     "test_macro_f1": 0.25,
-    "deployment_choice": false
+    "deployment_choice": false,
+    "api_cost_per_1000_predictions": 0,
+    "compute_cost_category": "high_gpu_or_cpu",
+    "latency_category": "slowest",
+    "deployment_cost_reason": "no API cost if hosted locally, but highest runtime cost and slowest inference"
   }
 ]

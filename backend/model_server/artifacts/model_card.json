@@ -21,5 +21,8 @@
   },
   "test_accuracy": 0.8105,
   "test_macro_f1": 0.6853,
-  "deployment_reason": "Best test accuracy and macro-F1, faster and cheaper than transformer and LLM baseline."
+  "deployment_reason": "Best test accuracy and macro-F1, faster and cheaper than transformer and LLM baseline.",
+  "training_data_sha256": "10b5bafce2c1c1c6959ff1d44b118c992a4c54b2383296b3abdbce497b1d3be3",
+  "model_sha256": "b26cf528933d5111d4baf32026fbe8ae5e7bee60dc2eedaa507a5b784663a1f7",
+  "artifact_manifest_path": "backend/model_server/artifacts/artifact_manifest.json"
 }

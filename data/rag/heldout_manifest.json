@@ -1,0 +1,26 @@
+{
+  "source_file": "data/raw/resolved_issues_raw.json",
+  "output_file": "data/rag/heldout_resolved_issues.jsonl",
+  "total_input_issues": 100,
+  "classifier_split_issue_count": 5942,
+  "removed_overlap_count": 15,
+  "kept_heldout_count": 85,
+  "removed_issue_numbers": [
+    62385,
+    62434,
+    62481,
+    62529,
+    62540,
+    62575,
+    62580,
+    62604,
+    62669,
+    62693,
+    62723,
+    62767,
+    62893,
+    62937,
+    63391
+  ],
+  "created_at": "2026-05-20T14:52:38.502446+00:00"
+}

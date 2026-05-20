@@ -1,0 +1,6 @@
+{
+  "status": "complete",
+  "rag_store_path": "data/rag_store.json",
+  "manual_mapping_count": 0,
+  "examples": []
+}

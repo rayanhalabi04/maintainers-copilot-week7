@@ -1,0 +1,22 @@
+{
+  "model_name": "tfidf_logreg_baseline",
+  "model_type": "TF-IDF + Logistic Regression",
+  "label_names": [
+    "bug",
+    "feature",
+    "docs",
+    "question"
+  ],
+  "model_artifact_path": "backend/model_server/artifacts/tfidf_logreg_baseline.joblib",
+  "model_sha256": "b26cf528933d5111d4baf32026fbe8ae5e7bee60dc2eedaa507a5b784663a1f7",
+  "training_data_path": "backend/model_server/artifacts/train.csv",
+  "training_data_sha256": "10b5bafce2c1c1c6959ff1d44b118c992a4c54b2383296b3abdbce497b1d3be3",
+  "created_at": "2026-05-20T14:19:08.724451+00:00",
+  "repo": "nodejs/node",
+  "source_files_used": [
+    "backend/model_server/artifacts/tfidf_logreg_baseline.joblib",
+    "backend/model_server/artifacts/train.csv",
+    "backend/model_server/artifacts/model_card.json",
+    "backend/model_server/artifacts/tfidf_logreg_metrics.json"
+  ]
+}

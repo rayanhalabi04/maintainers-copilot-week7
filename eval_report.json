@@ -79,5 +79,21 @@
       "classification_accuracy_min": 0.5,
       "classification_macro_f1_min": 0.5
     }
+  },
+  "rag": {
+    "naive": {
+      "examples": 25,
+      "hit_at_5": 0.76,
+      "mrr_at_10": 0.528047619047619
+    },
+    "advanced": {
+      "examples": 25,
+      "hit_at_5": 0.88,
+      "mrr_at_10": 0.7233333333333334
+    },
+    "thresholds": {
+      "hit_at_5": 0.1,
+      "mrr_at_10": 0.05
+    }
   }
 }

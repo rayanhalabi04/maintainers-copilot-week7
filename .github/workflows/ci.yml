@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-eval:
+    runs-on: ubuntu-latest
+    env:
+      RAG_EMBEDDING_PROVIDER: hashing
+      RAG_RERANKER_ENABLED: "false"
+      RAG_FORCE_LOCAL_STORE: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Compile Python files
+        run: uv run python -m compileall backend/model_server/app scripts tests
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Validate classification golden set
+        run: uv run python scripts/validate_classification_golden.py
+
+      - name: Run classification eval gate
+        run: uv run python scripts/eval_classification.py
+
+      - name: Validate RAG golden set
+        run: uv run python scripts/validate_rag_golden.py
+
+      - name: Run RAG eval gate
+        run: uv run python scripts/eval_rag.py

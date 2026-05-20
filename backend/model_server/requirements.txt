@@ -4,6 +4,3 @@ scikit-learn
 joblib
 pydantic
 python-dotenv
-spacy
-transformers
-torch

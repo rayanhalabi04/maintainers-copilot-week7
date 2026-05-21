@@ -9,6 +9,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend" / "model_server"))
 
 from app.domain.classification import ClassifyRequest  # noqa: E402
+from app.infra.eval_thresholds import (  # noqa: E402
+    ThresholdValidationError,
+    load_classification_thresholds,
+)
 from app.services.classifier_service import ClassifierService  # noqa: E402
 
 
@@ -112,24 +116,10 @@ def compute_metrics(predictions: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def load_thresholds(path: Path) -> dict[str, float]:
-    thresholds = {
-        "classification_accuracy_min": 0.5,
-        "classification_macro_f1_min": 0.5,
-    }
-    if not path.exists():
-        return thresholds
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line or line.startswith(" ") or line.lstrip().startswith("#") or ":" not in line:
-            continue
-        key, value = line.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-        if key in thresholds and value:
-            try:
-                thresholds[key] = float(value)
-            except ValueError:
-                fail(f"Invalid numeric threshold for {key}: {value!r}")
-    return thresholds
+    try:
+        return load_classification_thresholds(path)
+    except ThresholdValidationError as exc:
+        fail(str(exc))
 
 
 def write_json(path: Path, data: dict[str, Any]) -> None:

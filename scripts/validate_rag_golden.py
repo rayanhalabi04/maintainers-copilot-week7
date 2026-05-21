@@ -5,8 +5,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-GOLDEN_PATH = ROOT / "data" / "evals" / "rag_golden.jsonl"
-RAG_STORE_PATH = ROOT / "data" / "rag_store.json"
+GOLDEN_PATH = ROOT / "evals" / "rag_golden_set.jsonl"
+PROCESSED_CHUNKS_PATH = ROOT / "data" / "rag" / "processed" / "rag_chunks.jsonl"
 
 
 def fail(message: str) -> None:
@@ -14,15 +14,19 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
-def load_rag_chunk_ids() -> set[str]:
-    if not RAG_STORE_PATH.exists():
+def load_rag_keys() -> set[str]:
+    if not PROCESSED_CHUNKS_PATH.exists():
         return set()
-    data = json.loads(RAG_STORE_PATH.read_text(encoding="utf-8"))
-    return {
-        str(chunk.get("id"))
-        for chunk in data.get("chunks", [])
-        if isinstance(chunk, dict) and chunk.get("id")
-    }
+    keys = set()
+    for line in PROCESSED_CHUNKS_PATH.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        chunk = json.loads(line)
+        keys.add(str(chunk.get("id") or ""))
+        keys.add(str(chunk.get("source_id") or ""))
+        metadata = chunk.get("metadata") if isinstance(chunk.get("metadata"), dict) else {}
+        keys.add(str(metadata.get("path") or ""))
+    return {key for key in keys if key}
 
 
 def main() -> None:
@@ -41,7 +45,7 @@ def main() -> None:
     if len(rows) != 25:
         fail(f"Expected exactly 25 rows, found {len(rows)}")
 
-    known_chunk_ids = load_rag_chunk_ids()
+    known_keys = load_rag_keys()
     missing_chunks: list[tuple[int, str]] = []
 
     for index, row in enumerate(rows, start=1):
@@ -49,19 +53,19 @@ def main() -> None:
             fail(f"Row {index} is missing question")
         if not str(row.get("ideal_answer") or "").strip():
             fail(f"Row {index} is missing ideal_answer")
-        chunk_ids = row.get("ground_truth_chunk_ids")
+        chunk_ids = row.get("ground_truth_chunk_ids") or row.get("ground_truth_chunks")
         if not isinstance(chunk_ids, list) or not chunk_ids:
-            fail(f"Row {index} must have non-empty ground_truth_chunk_ids")
+            fail(f"Row {index} must have non-empty ground_truth_chunks")
         for chunk_id in chunk_ids:
             chunk_id_text = str(chunk_id)
             if chunk_id_text.startswith("placeholder"):
                 fail(f"Row {index} has placeholder chunk id: {chunk_id_text}")
-            if known_chunk_ids and chunk_id_text not in known_chunk_ids:
+            if known_keys and chunk_id_text not in known_keys:
                 missing_chunks.append((index, chunk_id_text))
 
     if missing_chunks:
         details = ", ".join(f"row {row}: {chunk_id}" for row, chunk_id in missing_chunks)
-        fail(f"Chunk IDs not found in {RAG_STORE_PATH.relative_to(ROOT)}: {details}")
+        fail(f"Ground-truth sources not found in {PROCESSED_CHUNKS_PATH.relative_to(ROOT)}: {details}")
 
     print("RAG golden file is valid.")
 

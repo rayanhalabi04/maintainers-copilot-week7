@@ -13,6 +13,11 @@ venv/
 # IDE
 .vscode/
 
+# Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+
 # Model artifacts - optional decision
 # If artifacts are too large, do not commit them directly.
 # Use MinIO or GitHub Releases later.

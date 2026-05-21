@@ -8,9 +8,23 @@ jobs:
   test-and-eval:
     runs-on: ubuntu-latest
     env:
-      RAG_EMBEDDING_PROVIDER: hashing
       RAG_RERANKER_ENABLED: "false"
-      RAG_FORCE_LOCAL_STORE: "1"
+      RAG_FORCE_LOCAL_STORE: "false"
+      DATABASE_URL: postgresql://maintainers:maintainers@localhost:5432/maintainers_copilot
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: maintainers
+          POSTGRES_PASSWORD: maintainers
+          POSTGRES_DB: maintainers_copilot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U maintainers -d maintainers_copilot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Check out repository
@@ -40,6 +54,12 @@ jobs:
 
       - name: Run classification eval gate
         run: uv run python scripts/eval_classification.py
+
+      - name: Run RAG migrations
+        run: uv run alembic upgrade head
+
+      - name: Ingest final RAG corpus into pgvector
+        run: uv run python scripts/ingest_final_rag_corpus.py
 
       - name: Validate RAG golden set
         run: uv run python scripts/validate_rag_golden.py

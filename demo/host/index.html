@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maintainer's Copilot Host Demo</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #172033;
+        background: #f8fafc;
+      }
+
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 72px 24px;
+      }
+
+      h1 {
+        font-size: 40px;
+        margin: 0 0 12px;
+      }
+
+      p {
+        max-width: 650px;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Demo host app embedding Maintainer's Copilot widget</h1>
+      <p>
+        This static page loads the backend-provided loader script. The loader injects
+        the React widget in an iframe and listens for resize messages.
+      </p>
+    </main>
+
+    <script src="http://localhost:8001/widget.js" data-widget-id="demo-widget"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "demo-widget": {
+    "widget_id": "demo-widget",
+    "theme": {
+      "primaryColor": "#2563eb",
+      "position": "bottom-right"
+    },
+    "greeting": "Hi, I'm the Maintainer's Copilot.",
+    "enabled_tools": ["classify", "ner", "summarize", "rag"]
+  }
+}

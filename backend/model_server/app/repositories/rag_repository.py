@@ -91,7 +91,7 @@ class LocalJsonRagRepository(RagRepository):
         if not chunks or not query_tokens:
             return []
 
-        doc_tokens = {chunk.id: _token_list(chunk.text) for chunk in chunks}
+        doc_tokens = {chunk.id: _token_list(self._search_text(chunk)) for chunk in chunks}
         doc_freq: Counter[str] = Counter()
         for tokens in doc_tokens.values():
             doc_freq.update(set(tokens))
@@ -136,6 +136,10 @@ class LocalJsonRagRepository(RagRepository):
         labels = chunk.metadata.get("labels") or []
         if filters.labels and not set(filters.labels).issubset(set(labels)):
             return False
+        if filters.path and chunk.metadata.get("path") != filters.path:
+            return False
+        if filters.repo and chunk.metadata.get("repo") != filters.repo:
+            return False
         created_at = _parse_dt(chunk.metadata.get("created_at"))
         resolved_at = _parse_dt(chunk.metadata.get("resolved_at") or chunk.metadata.get("closed_at"))
         if filters.created_after and created_at and created_at < filters.created_after:
@@ -168,6 +172,11 @@ class LocalJsonRagRepository(RagRepository):
             text=chunk.text,
             metadata=metadata,
         )
+
+    def _search_text(self, chunk: RagChunk) -> str:
+        path = chunk.metadata.get("path") or ""
+        labels = " ".join(chunk.metadata.get("labels") or [])
+        return f"{chunk.title} {chunk.source_id} {path} {labels} {chunk.text}"
 
 
 class PostgresRagRepository(RagRepository):
@@ -231,7 +240,8 @@ class PostgresRagRepository(RagRepository):
                 cur.execute(
                     f"""
                     select c.id, c.document_id, d.source_type, d.source_id, d.title, d.url,
-                           1 - (c.embedding <=> %s::vector) as score, c.text, c.metadata
+                           1 - (c.embedding <=> %s::vector) as score, c.text, c.metadata,
+                           d.metadata, d.text
                     from rag_chunks c
                     join rag_documents d on d.id = c.document_id
                     {where}
@@ -249,11 +259,17 @@ class PostgresRagRepository(RagRepository):
                 cur.execute(
                     f"""
                     select c.id, c.document_id, d.source_type, d.source_id, d.title, d.url,
-                           ts_rank_cd(to_tsvector('english', c.text), plainto_tsquery('english', %s)) as score,
-                           c.text, c.metadata
+                           ts_rank_cd(
+                               to_tsvector('english', d.title || ' ' || d.source_id || ' ' ||
+                                   coalesce(d.metadata->>'path', '') || ' ' || c.text),
+                               plainto_tsquery('english', %s)
+                           ) as score,
+                           c.text, c.metadata, d.metadata, d.text
                     from rag_chunks c
                     join rag_documents d on d.id = c.document_id
-                    where to_tsvector('english', c.text) @@ plainto_tsquery('english', %s)
+                    where to_tsvector('english', d.title || ' ' || d.source_id || ' ' ||
+                              coalesce(d.metadata->>'path', '') || ' ' || c.text)
+                          @@ plainto_tsquery('english', %s)
                     {where}
                     order by score desc
                     limit %s
@@ -261,6 +277,39 @@ class PostgresRagRepository(RagRepository):
                     [query, query, *params, top_k],
                 )
                 return [_row_to_retrieved(row) for row in cur.fetchall()]
+
+    def get_sibling_chunks(self, document_id: str, chunk_index: int, window: int = 1) -> list[RagChunk]:
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    select c.id, c.document_id, d.source_type, d.source_id, d.title,
+                           c.text, c.metadata, d.url
+                    from rag_chunks c
+                    join rag_documents d on d.id = c.document_id
+                    where c.document_id = %s
+                      and abs(c.chunk_index - %s) <= %s
+                    order by c.chunk_index
+                    """,
+                    (document_id, chunk_index, window),
+                )
+                chunks = []
+                for row in cur.fetchall():
+                    metadata = row[6] or {}
+                    chunks.append(
+                        RagChunk(
+                            id=str(row[0]),
+                            document_id=str(row[1]),
+                            source_type=row[2],
+                            source_id=row[3],
+                            title=row[4],
+                            text=row[5],
+                            chunk_index=int(metadata.get("chunk_index", 0)),
+                            url=row[7],
+                            metadata=metadata,
+                        )
+                    )
+                return chunks
 
     def _filter_sql(self, filters: RagFilters | None, prefix: str = "where") -> tuple[str, list[Any]]:
         clauses = []
@@ -272,6 +321,12 @@ class PostgresRagRepository(RagRepository):
             if filters.labels:
                 clauses.append("(d.metadata->'labels') ?& %s")
                 params.append(filters.labels)
+            if filters.path:
+                clauses.append("(d.metadata->>'path' = %s or c.metadata->>'path' = %s)")
+                params.extend([filters.path, filters.path])
+            if filters.repo:
+                clauses.append("(d.metadata->>'repo' = %s or c.metadata->>'repo' = %s)")
+                params.extend([filters.repo, filters.repo])
             if filters.created_after:
                 clauses.append("d.created_at >= %s")
                 params.append(filters.created_after)
@@ -289,8 +344,14 @@ class PostgresRagRepository(RagRepository):
         return f"{prefix} " + " and ".join(clauses), params
 
 
-def create_rag_repository(database_url: str | None, local_store_path: str) -> RagRepository:
-    if database_url and not os.getenv("RAG_FORCE_LOCAL_STORE"):
+def create_rag_repository(
+    database_url: str | None,
+    local_store_path: str,
+    force_local_store: bool | None = None,
+) -> RagRepository:
+    if force_local_store is None:
+        force_local_store = os.getenv("RAG_FORCE_LOCAL_STORE", "false").lower() == "true"
+    if database_url and not force_local_store:
         return PostgresRagRepository(database_url)
     return LocalJsonRagRepository(local_store_path)
 
@@ -300,6 +361,14 @@ def _vector_literal(values: list[float]) -> str:
 
 
 def _row_to_retrieved(row: tuple[Any, ...]) -> RetrievedChunk:
+    metadata = dict(row[8] or {})
+    if len(row) > 9:
+        parent_metadata = row[9] or {}
+        metadata.setdefault("parent_metadata", parent_metadata)
+        metadata.setdefault("repo", parent_metadata.get("repo"))
+        metadata.setdefault("path", parent_metadata.get("path"))
+    if len(row) > 10 and row[10]:
+        metadata.setdefault("parent_text_preview", str(row[10])[:2000])
     return RetrievedChunk(
         chunk_id=str(row[0]),
         document_id=str(row[1]),
@@ -309,7 +378,7 @@ def _row_to_retrieved(row: tuple[Any, ...]) -> RetrievedChunk:
         url=row[5],
         score=float(row[6] or 0.0),
         text=row[7],
-        metadata=row[8] or {},
+        metadata=metadata,
     )
 
 

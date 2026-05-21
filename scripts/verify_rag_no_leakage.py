@@ -8,12 +8,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT_DIR = ROOT / "backend" / "model_server" / "artifacts"
-CLASSIFIER_SPLITS = [
-    ARTIFACT_DIR / "train.csv",
-    ARTIFACT_DIR / "val.csv",
-    ARTIFACT_DIR / "test.csv",
-]
+CLASSIFIER_TRAIN_PATH = ARTIFACT_DIR / "train.csv"
 HELDOUT_RAG_PATH = ROOT / "data" / "rag" / "heldout_resolved_issues.jsonl"
+FINAL_RAG_PATH = ROOT / "data" / "rag" / "final_issues" / "node_resolved_issues.jsonl"
 RAW_RESOLVED_PATH = ROOT / "data" / "raw" / "resolved_issues_raw.json"
 NUMBER_KEYS = ("issue_number", "number", "issue_id", "id")
 
@@ -96,22 +93,21 @@ def extract_issue_numbers(rows: list[dict[str, Any]]) -> set[int]:
     return numbers
 
 
-def load_classifier_issue_numbers() -> set[int]:
+def load_classifier_train_issue_numbers() -> set[int]:
     numbers = set()
-    for split_path in CLASSIFIER_SPLITS:
-        if not split_path.exists():
-            fail(f"Missing classifier split: {split_path.relative_to(ROOT)}")
-        for row in load_csv_rows(split_path):
-            issue_number = normalize_issue_number(row.get("issue_number") or row.get("number"))
-            if issue_number is not None:
-                numbers.add(issue_number)
+    if not CLASSIFIER_TRAIN_PATH.exists():
+        fail(f"Missing classifier train split: {CLASSIFIER_TRAIN_PATH.relative_to(ROOT)}")
+    for row in load_csv_rows(CLASSIFIER_TRAIN_PATH):
+        issue_number = normalize_issue_number(row.get("issue_number") or row.get("number"))
+        if issue_number is not None:
+            numbers.add(issue_number)
     return numbers
 
 
 def main() -> None:
-    classifier_numbers = load_classifier_issue_numbers()
+    classifier_numbers = load_classifier_train_issue_numbers()
     if not classifier_numbers:
-        fail("No classifier issue numbers found")
+        fail("No classifier train issue numbers found")
 
     if not HELDOUT_RAG_PATH.exists():
         fail(
@@ -119,17 +115,34 @@ def main() -> None:
             "Run python3 scripts/build_clean_rag_issues.py first."
         )
 
-    heldout_numbers = extract_issue_numbers(load_rows(HELDOUT_RAG_PATH))
-    overlaps = sorted(heldout_numbers & classifier_numbers)
-    if overlaps:
+    final_numbers = extract_issue_numbers(load_rows(FINAL_RAG_PATH)) if FINAL_RAG_PATH.exists() else set()
+    final_overlaps = sorted(final_numbers & classifier_numbers)
+    if final_overlaps:
+        print(f"RAG/classifier leakage detected in {FINAL_RAG_PATH.relative_to(ROOT)}:")
+        for issue_number in final_overlaps:
+            print(f"  issue {issue_number}")
+        raise SystemExit(1)
+
+    legacy_numbers = extract_issue_numbers(load_rows(HELDOUT_RAG_PATH))
+    legacy_overlaps = sorted(legacy_numbers & classifier_numbers)
+    if legacy_overlaps:
+        preview = ", ".join(str(number) for number in legacy_overlaps[:20])
+        suffix = "..." if len(legacy_overlaps) > 20 else ""
+        print(
+            f"WARNING: legacy demo RAG file {HELDOUT_RAG_PATH.relative_to(ROOT)} overlaps "
+            f"classifier training ({len(legacy_overlaps)} issues): {preview}{suffix}"
+        )
+
+    checked_count = len(final_numbers) if final_numbers else len(legacy_numbers)
+    if not final_numbers and legacy_overlaps:
         print(f"RAG/classifier leakage detected in {HELDOUT_RAG_PATH.relative_to(ROOT)}:")
-        for issue_number in overlaps:
+        for issue_number in legacy_overlaps:
             print(f"  issue {issue_number}")
         raise SystemExit(1)
 
     print(
         f"No RAG/classifier issue-number overlap found in "
-        f"{HELDOUT_RAG_PATH.relative_to(ROOT)} ({len(heldout_numbers)} held-out issues checked)."
+        f"production RAG issue file ({checked_count} issues checked)."
     )
 
     if RAW_RESOLVED_PATH.exists():

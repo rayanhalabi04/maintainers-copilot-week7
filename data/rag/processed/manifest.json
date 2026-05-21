@@ -1,0 +1,9 @@
+{
+  "repo": "nodejs/node",
+  "documents": 56,
+  "chunks": 4125,
+  "doc_documents": 17,
+  "issue_documents": 39,
+  "docs_path": "data/rag/processed/rag_documents.jsonl",
+  "chunks_path": "data/rag/processed/rag_chunks.jsonl"
+}

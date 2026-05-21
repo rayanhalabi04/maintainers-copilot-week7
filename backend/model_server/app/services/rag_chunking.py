@@ -16,10 +16,11 @@ class ParentChildChunker:
         else:
             pieces = self._chunk_markdown(document.text)
         chunks = []
-        for index, (text, metadata) in enumerate(pieces):
+        for _piece_index, (text, metadata) in enumerate(pieces):
             clean_text = text.strip()
-            if not clean_text:
+            if not clean_text or self._is_tiny_useless_chunk(clean_text):
                 continue
+            index = len(chunks)
             chunks.append(
                 RagChunk(
                     id=stable_id(document.id, index, clean_text[:80]),
@@ -37,13 +38,28 @@ class ParentChildChunker:
 
     def _chunk_issue(self, document: RagDocument) -> list[tuple[str, dict[str, object]]]:
         parts = []
-        parts.append((document.title, {"section": "title"}))
-        sections = re.split(r"\n(?=#+\s+|\*\*[^*]+\*\*:)", document.text)
+        sections = re.split(r"\n(?=##\s+)", document.text)
+        if len(sections) <= 1:
+            sections = re.split(r"\n(?=#+\s+|\*\*[^*]+\*\*:)", document.text)
+
+        pending_issue_body = ""
         for section in sections:
             section = section.strip()
-            if section:
-                name = "final maintainer answer" if "maintainer" in section.lower() else "body"
-                parts.extend(self._split_long_text(section, {"section": name}))
+            if not section:
+                continue
+            lowered = section.lower()
+            if "issue body" in lowered and len(section.split()) <= 220:
+                pending_issue_body = section
+                continue
+            if "maintainer" in lowered and pending_issue_body:
+                combined = f"{pending_issue_body}\n\n{section}"
+                parts.extend(self._split_long_text(combined, {"section": "issue and maintainer answer"}))
+                pending_issue_body = ""
+                continue
+            name = "final maintainer answer" if "maintainer" in lowered else "body"
+            parts.extend(self._split_long_text(section, {"section": name}))
+        if pending_issue_body:
+            parts.extend(self._split_long_text(pending_issue_body, {"section": "body"}))
         return parts
 
     def _chunk_markdown(self, text: str) -> list[tuple[str, dict[str, object]]]:
@@ -71,3 +87,11 @@ class ParentChildChunker:
             words = block.split()
             for start in range(0, len(words), max_words):
                 yield " ".join(words[start : start + max_words]), metadata
+
+    def _is_tiny_useless_chunk(self, text: str) -> bool:
+        words = text.split()
+        if len(words) >= 8:
+            return False
+        if text.startswith("#") and len(words) >= 3:
+            return False
+        return True

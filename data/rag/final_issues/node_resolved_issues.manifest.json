@@ -1,0 +1,12 @@
+{
+  "repo": "nodejs/node",
+  "mode": "local_raw",
+  "output": "data/rag/final_issues/node_resolved_issues.jsonl",
+  "target_count": 100,
+  "records": 39,
+  "maintainer_associations": [
+    "COLLABORATOR",
+    "MEMBER",
+    "OWNER"
+  ]
+}

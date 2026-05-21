@@ -22,7 +22,11 @@ def main() -> None:
     args = parser.parse_args()
 
     config = RagConfig()
-    repository = create_rag_repository(config.database_url, config.local_store_path)
+    repository = create_rag_repository(
+        config.database_url,
+        config.local_store_path,
+        force_local_store=config.force_local_store,
+    )
     embedder = SentenceTransformerEmbeddingProvider(config.embedding_model)
     chunker = ParentChildChunker()
 

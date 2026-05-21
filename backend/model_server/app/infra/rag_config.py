@@ -16,4 +16,5 @@ class RagConfig:
     hybrid_alpha: float = float(os.getenv("RAG_HYBRID_ALPHA", "0.6"))
     database_url: str | None = os.getenv("DATABASE_URL")
     local_store_path: str = os.getenv("RAG_LOCAL_STORE_PATH", "data/rag_store.json")
+    force_local_store: bool = os.getenv("RAG_FORCE_LOCAL_STORE", "false").lower() == "true"
     min_answer_score: float = float(os.getenv("RAG_MIN_ANSWER_SCORE", "0.05"))

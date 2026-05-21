@@ -11,6 +11,8 @@ SourceTypeFilter = Literal["all", "doc", "issue"]
 class RagFilters(BaseModel):
     source_type: SourceType | None = None
     labels: list[str] | None = None
+    path: str | None = None
+    repo: str | None = None
     created_after: datetime | None = None
     created_before: datetime | None = None
     resolved_after: datetime | None = None

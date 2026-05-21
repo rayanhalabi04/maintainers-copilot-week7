@@ -8,6 +8,7 @@ from app.main import app
 class FakeRagService:
     def query(self, request):
         return RagQueryResponse(
+            question=request.question,
             answer="Based on previous resolved issues, clear stale tokens.",
             sources=[
                 RagSource(

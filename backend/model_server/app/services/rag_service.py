@@ -26,7 +26,9 @@ class RagService:
     ) -> None:
         self.config = config or RagConfig()
         self.repository = repository or create_rag_repository(
-            self.config.database_url, self.config.local_store_path
+            self.config.database_url,
+            self.config.local_store_path,
+            force_local_store=self.config.force_local_store,
         )
         self.embedding_provider = embedding_provider or SentenceTransformerEmbeddingProvider(
             self.config.embedding_model
